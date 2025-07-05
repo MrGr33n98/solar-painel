@@ -46,7 +46,7 @@ Este documento detalha as features e tarefas para a implementação do backend M
     - **Descrição:** Na página do Marketplace (`/buyer/marketplace`), fazer uma chamada `fetch` ao endpoint `GET /api/products` e exibir os produtos retornados em vez de dados estáticos.
     - **Status:** ⬜️ Pendente
 
-- [ ] **Tarefa 2.6: Integrar Frontend para Criar Produtos**
+- [x] **Tarefa 2.6: Integrar Frontend para Criar Produtos**
     - **Descrição:** No formulário de adicionar produto (`/vendor/products/add`), fazer uma chamada `fetch` ao endpoint `POST /api/products` ao submeter o formulário.
     - **Status:** ⬜️ Pendente
 

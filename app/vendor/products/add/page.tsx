@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DataService } from '@/lib/data';
-import { AuthService } from '@/lib/auth';
+import { AuthService } from '@/lib/auth'; // Keep for now, will be replaced by Supabase auth
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -137,40 +136,46 @@ export default function AddProductPage() {
 
     try {
       const authService = AuthService.getInstance();
-      const dataService = DataService.getInstance();
       const currentUser = authService.getCurrentUser();
 
-      if (!currentUser) {
-        alert('Usuário não autenticado');
+      // TEMPORARY: For MVP, use a placeholder vendorId if not authenticated
+      // This will be replaced by actual user ID from Supabase authentication (Feature 3)
+      const tempVendorId = "clx000000000000000000000"; // Replace with a valid User ID from your DB if you have one, or create one.
+      const vendorId = currentUser?.id || tempVendorId;
+
+      if (!vendorId) {
+        alert('Vendor ID is missing. Cannot create product.');
+        setIsLoading(false);
         return;
       }
 
-      // Filter out empty specifications and certifications
-      const filteredSpecs = product.specifications.filter(spec => spec.key && spec.value);
-      const filteredCerts = product.certification.filter(cert => cert.trim());
-      const filteredImages = product.images.filter(img => img.trim());
-
-      const specsObject = filteredSpecs.reduce((acc, spec) => {
-        acc[spec.key] = spec.value;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const newProduct = {
-        ...product,
-        vendorId: currentUser.id,
-        vendorName: currentUser.company || currentUser.name,
-        specifications: specsObject,
-        certification: filteredCerts,
-        images: filteredImages.length > 0 ? filteredImages : ['https://images.pexels.com/photos/9875416/pexels-photo-9875416.jpeg'],
-        rating: 0,
-        reviews: 0
+      // Prepare product data to send to the backend API
+      // Only send fields that are part of the current backend Product model
+      const productDataToSend = {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        vendorId: vendorId,
       };
 
-      dataService.addProduct(newProduct);
-      alert('Produto cadastrado com sucesso! Aguarde a aprovação do administrador.');
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productDataToSend),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      alert('Produto cadastrado com sucesso!'); // Simplified message for MVP
       router.push('/vendor/products');
-    } catch (error) {
-      alert('Erro ao cadastrar produto. Tente novamente.');
+    } catch (error: any) {
+      console.error('Error creating product:', error);
+      alert(`Erro ao cadastrar produto: ${error.message || 'Tente novamente.'}`);
     } finally {
       setIsLoading(false);
     }
