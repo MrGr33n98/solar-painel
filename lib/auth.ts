@@ -1,22 +1,24 @@
+import { createClient } from './supabase/client'
+
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'buyer' | 'vendor';
-  status: 'active' | 'pending' | 'inactive';
-  avatar?: string;
-  company?: string;
-  createdAt: Date;
+  id: string
+  email: string
+  name: string
+  role: 'admin' | 'buyer' | 'vendor'
+  status: 'active' | 'pending' | 'inactive'
+  avatar?: string
+  company?: string
+  createdAt: Date
   // Brazilian specific fields
-  cpf?: string;
-  cnpj?: string;
-  phone?: string;
+  cpf?: string
+  cnpj?: string
+  phone?: string
   address?: {
-    street: string;
-    city: string;
-    state: string;
-    cep: string;
-  };
+    street: string
+    city: string
+    state: string
+    cep: string
+  }
 }
 
 export interface AuthState {
@@ -25,74 +27,9 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
-// Mock authentication service with Brazilian users
 export class AuthService {
   private static instance: AuthService;
-  private users: User[] = [
-    {
-      id: '1',
-      email: 'admin@solarhub.com.br',
-      name: 'Administrador Sistema',
-      role: 'admin',
-      status: 'active',
-      createdAt: new Date('2024-01-01'),
-      cpf: '123.456.789-00'
-    },
-    {
-      id: '2',
-      email: 'joao.silva@email.com',
-      name: 'João Silva',
-      role: 'buyer',
-      status: 'active',
-      createdAt: new Date('2024-01-15'),
-      cpf: '987.654.321-00',
-      phone: '(11) 99999-8888',
-      address: {
-        street: 'Rua das Flores, 123',
-        city: 'São Paulo',
-        state: 'SP',
-        cep: '01234-567'
-      }
-    },
-    {
-      id: '3',
-      email: 'vendedor@solarpro.com.br',
-      name: 'Maria Santos',
-      role: 'vendor',
-      status: 'active',
-      company: 'SolarPro Soluções Energéticas',
-      createdAt: new Date('2024-01-10'),
-      cnpj: '12.345.678/0001-90',
-      phone: '(11) 99999-7777'
-    },
-    {
-      id: '4',
-      email: 'carlos@energiabrasil.com.br',
-      name: 'Carlos Oliveira',
-      role: 'vendor',
-      status: 'pending',
-      company: 'EnergiaBrasil Ltda',
-      createdAt: new Date('2024-01-20'),
-      cnpj: '98.765.432/0001-10',
-      phone: '(21) 99999-6666'
-    },
-    {
-      id: '5',
-      email: 'ana.costa@email.com',
-      name: 'Ana Costa',
-      role: 'buyer',
-      status: 'active',
-      createdAt: new Date('2024-01-18'),
-      cpf: '456.789.123-00',
-      phone: '(21) 99999-5555',
-      address: {
-        street: 'Av. Energia Limpa, 456',
-        city: 'Rio de Janeiro',
-        state: 'RJ',
-        cep: '20000-000'
-      }
-    }
-  ];
+  private supabase = createClient()
 
   static getInstance(): AuthService {
     if (!AuthService.instance) {
@@ -102,69 +39,159 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<User | null> {
-    // Mock authentication
-    const user = this.users.find(u => u.email === email);
-    if (user && password === 'password') {
-      this.setCurrentUser(user);
-      return user;
+    const { data, error } = await this.supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error || !data.user) {
+      return null
     }
-    return null;
+
+    const { data: profile } = await this.supabase
+      .from('User')
+      .select('*')
+      .eq('id', data.user.id)
+      .single()
+
+    if (!profile) {
+      return null
+    }
+
+    const user: User = {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role.toLowerCase(),
+      status: profile.status || 'active',
+      avatar: profile.avatar || undefined,
+      company: profile.company || undefined,
+      createdAt: new Date(profile.createdAt),
+      cpf: profile.cpf || undefined,
+      cnpj: profile.cnpj || undefined,
+      phone: profile.phone || undefined,
+      address: profile.address || undefined,
+    }
+
+    this.setCurrentUser(user)
+    return user
   }
 
-  async register(userData: Omit<User, 'id' | 'createdAt'>): Promise<User> {
-    const newUser: User = {
-      ...userData,
-      id: Date.now().toString(),
-      createdAt: new Date()
-    };
-    this.users.push(newUser);
-    return newUser;
+  async register(userData: Omit<User, 'id' | 'createdAt'> & { password: string }): Promise<User | null> {
+    const { email, password, name, role } = userData
+    const { data, error } = await this.supabase.auth.signUp({ email, password })
+    if (error || !data.user) {
+      return null
+    }
+
+    const { data: profile, error: insertError } = await this.supabase
+      .from('User')
+      .insert({ id: data.user.id, email, name, role: role.toUpperCase() })
+      .select('*')
+      .single()
+
+    if (insertError || !profile) {
+      return null
+    }
+
+    const user: User = {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role.toLowerCase(),
+      status: profile.status || 'active',
+      createdAt: new Date(profile.createdAt),
+    }
+
+    this.setCurrentUser(user)
+    return user
   }
 
   getCurrentUser(): User | null {
     if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('currentUser');
-      return userData ? JSON.parse(userData) : null;
+      const userData = localStorage.getItem('currentUser')
+      return userData ? JSON.parse(userData) : null
     }
-    return null;
+    return null
   }
 
   setCurrentUser(user: User | null): void {
     if (typeof window !== 'undefined') {
       if (user) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem('currentUser', JSON.stringify(user))
       } else {
-        localStorage.removeItem('currentUser');
+        localStorage.removeItem('currentUser')
       }
     }
   }
 
-  logout(): void {
-    this.setCurrentUser(null);
+  async logout(): Promise<void> {
+    await this.supabase.auth.signOut()
+    this.setCurrentUser(null)
   }
 
-  getAllUsers(): User[] {
-    return this.users;
+  async getAllUsers(): Promise<User[]> {
+    const { data } = await this.supabase.from('User').select('*')
+    return (data || []).map((u: any) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      role: u.role.toLowerCase(),
+      status: u.status || 'active',
+      createdAt: new Date(u.createdAt),
+    }))
   }
 
-  getUsersByRole(role: User['role']): User[] {
-    return this.users.filter(u => u.role === role);
+  async getUsersByRole(role: User['role']): Promise<User[]> {
+    const { data } = await this.supabase
+      .from('User')
+      .select('*')
+      .eq('role', role.toUpperCase())
+    return (data || []).map((u: any) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      role: u.role.toLowerCase(),
+      status: u.status || 'active',
+      createdAt: new Date(u.createdAt),
+    }))
   }
 
-  updateUserStatus(userId: string, status: User['status']): void {
-    const user = this.users.find(u => u.id === userId);
-    if (user) {
-      user.status = status;
+  async updateUserStatus(userId: string, status: User['status']): Promise<void> {
+    await this.supabase
+      .from('User')
+      .update({ status })
+      .eq('id', userId)
+  }
+
+  async updateUser(userId: string, updates: Partial<User>): Promise<User | null> {
+    const { data, error } = await this.supabase
+      .from('User')
+      .update(updates)
+      .eq('id', userId)
+      .select('*')
+      .single()
+
+    if (error || !data) {
+      return null
     }
-  }
 
-  updateUser(userId: string, updates: Partial<User>): User | null {
-    const index = this.users.findIndex(u => u.id === userId);
-    if (index !== -1) {
-      this.users[index] = { ...this.users[index], ...updates };
-      return this.users[index];
+    const user: User = {
+      id: data.id,
+      email: data.email,
+      name: data.name,
+      role: data.role.toLowerCase(),
+      status: data.status || 'active',
+      createdAt: new Date(data.createdAt),
+      avatar: data.avatar || undefined,
+      company: data.company || undefined,
+      cpf: data.cpf || undefined,
+      cnpj: data.cnpj || undefined,
+      phone: data.phone || undefined,
+      address: data.address || undefined,
     }
-    return null;
+
+    this.setCurrentUser(user)
+    return user
   }
 
   // Brazilian specific validations
