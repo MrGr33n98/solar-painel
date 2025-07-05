@@ -3,24 +3,27 @@ import { NextResponse } from 'next/server'
 
 import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  const response = NextResponse.next()
-  const supabase = createMiddlewareClient({ request, response })
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
 
-  await supabase.auth.getSession()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  return response
+  // Se o usuário não estiver logado e tentar acessar uma rota de admin, redirecione para o login
+  if (!user && req.nextUrl.pathname.startsWith('/admin')) {
+    return NextResponse.redirect(new URL('/login', req.url))
+  }
+
+  // Se o usuário estiver logado e tentar acessar a página de login, redirecione para o dashboard de admin
+  if (user && req.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/admin/dashboard', req.url))
+  }
+
+  return res
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/admin/:path*', '/login'], // Aplica o middleware a todas as rotas /admin e à rota /login
 }

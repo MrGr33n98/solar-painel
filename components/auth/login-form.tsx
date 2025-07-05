@@ -33,7 +33,7 @@ export default function LoginForm() {
         setError(authError.message);
       } else if (data.user) {
         // For MVP, redirect to a default page. Role-based redirection will be handled in Task 3.3
-        router.push('/'); 
+        router.push('/admin/dashboard'); 
       } else {
         setError('Login failed. Please check your credentials.');
       }
