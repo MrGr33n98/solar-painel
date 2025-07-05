@@ -30,15 +30,15 @@ Este documento detalha as features e tarefas para a implementação do backend M
     - **Descrição:** No `schema.prisma`, definir os modelos para `User` (com um campo de `role` para diferenciar `Buyer`, `Vendor`, `Admin`) e `Product`. Estabelecer a relação onde um `Product` pertence a um `User` (o Vendedor).
     - **Status:** ⬜️ Pendente
 
-- [ ] **Tarefa 2.2: Sincronizar o Schema com o Banco de Dados**
+- [x] **Tarefa 2.2: Sincronizar o Schema com o Banco de Dados**
     - **Descrição:** Executar o comando `npx prisma db push` para criar as tabelas `User` e `Product` no banco de dados do Supabase com base no schema definido.
     - **Status:** ⬜️ Pendente
 
-- [ ] **Tarefa 2.3: Criar API Endpoint para Listar Produtos (`GET /api/products`)**
+- [x] **Tarefa 2.3: Criar API Endpoint para Listar Produtos (`GET /api/products`)**
     - **Descrição:** Implementar uma API Route no Next.js que busca todos os produtos do banco de dados usando o Prisma Client e os retorna. Acesso público.
     - **Status:** ⬜️ Pendente
 
-- [ ] **Tarefa 2.4: Criar API Endpoint para Criar Produtos (`POST /api/products`)**
+- [x] **Tarefa 2.4: Criar API Endpoint para Criar Produtos (`POST /api/products`)**
     - **Descrição:** Implementar uma API Route que recebe os dados de um novo produto. A rota deve ser protegida, permitindo o acesso apenas a usuários com a role `Vendor`.
     - **Status:** ⬜️ Pendente
 
