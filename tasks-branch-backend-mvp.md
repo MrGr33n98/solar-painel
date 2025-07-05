@@ -56,7 +56,7 @@ Este documento detalha as features e tarefas para a implementação do backend M
 
 *Objetivo: Permitir que usuários se cadastrem e façam login na plataforma.*
 
-- [ ] **Tarefa 3.1: Configurar a Autenticação do Supabase**
+- [x] **Tarefa 3.1: Configurar a Autenticação do Supabase**
     - **Descrição:** Instalar os pacotes `@supabase/auth-helpers-nextjs` e `@supabase/supabase-js`. Configurar o "Auth Helper" do Supabase para Next.js (App Router) para gerenciar a sessão do usuário de forma integrada.
     - **Status:** ⬜️ Pendente
 
