@@ -64,6 +64,6 @@ Este documento detalha as features e tarefas para a implementação do backend M
     - **Descrição:** Modificar o componente `login-form.tsx` para usar o cliente do Supabase para realizar o login com email e senha.
     - **Status:** ⬜️ Pendente
 
-- [ ] **Tarefa 3.3: Implementar a Proteção de Rotas**
+- [x] **Tarefa 3.3: Implementar a Proteção de Rotas**
     - **Descrição:** Utilizar o Auth Helper do Supabase para proteger as rotas de `Admin`, `Buyer` e `Vendor`, redirecionando usuários não autenticados para a página de login.
     - **Status:** ⬜️ Pendente

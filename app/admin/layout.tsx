@@ -1,44 +1,30 @@
-"use client";
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthService } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import AdminSidebar from '@/components/layout/admin-sidebar';
 import Header from '@/components/layout/header';
+import { createClient } from '@/lib/supabase/server';
+import { PrismaClient } from '@prisma/client';
 
-export default function AdminLayout({
+const prisma = new PrismaClient();
+
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const supabase = createClient();
 
-  useEffect(() => {
-    const authService = AuthService.getInstance();
-    const currentUser = authService.getCurrentUser();
+  const { data: { session } } = await supabase.auth.getSession();
 
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
+  if (!session) {
+    redirect('/login');
+  }
 
-    if (currentUser.role !== 'admin') {
-      router.push('/login');
-      return;
-    }
+  const user = await prisma.user.findUnique({
+    where: { id: session?.user.id },
+  });
 
-    setUser(currentUser);
-    setIsLoading(false);
-  }, [router]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
-      </div>
-    );
+  if (!user || user.role !== 'ADMIN') {
+    redirect('/login');
   }
 
   return (
