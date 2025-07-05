@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -42,7 +43,6 @@
     "@radix-ui/react-tooltip": "^1.1.2",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.3",
-    "@types/node": "20.6.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
     "autoprefixer": "10.4.15",
@@ -73,6 +73,9 @@
     "zod": "^3.25.74"
   },
   "devDependencies": {
-    "prisma": "^6.11.1"
+    "@types/node": "^24.0.10",
+    "prisma": "^6.11.1",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }
