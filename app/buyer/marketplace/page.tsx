@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { DataService } from '@/lib/data';
 import ProductCard from '@/components/products/product-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,8 +14,21 @@ export default function MarketplacePage() {
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
-    const dataService = DataService.getInstance();
-    setProducts(dataService.getProducts().filter(p => p.status === 'active'));
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        // Optionally, set an error state to display to the user
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   const filteredProducts = products.filter(product => {

@@ -42,7 +42,7 @@ Este documento detalha as features e tarefas para a implementação do backend M
     - **Descrição:** Implementar uma API Route que recebe os dados de um novo produto. A rota deve ser protegida, permitindo o acesso apenas a usuários com a role `Vendor`.
     - **Status:** ⬜️ Pendente
 
-- [ ] **Tarefa 2.5: Integrar Frontend para Listar Produtos**
+- [x] **Tarefa 2.5: Integrar Frontend para Listar Produtos**
     - **Descrição:** Na página do Marketplace (`/buyer/marketplace`), fazer uma chamada `fetch` ao endpoint `GET /api/products` e exibir os produtos retornados em vez de dados estáticos.
     - **Status:** ⬜️ Pendente
 
