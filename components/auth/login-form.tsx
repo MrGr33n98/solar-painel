@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AuthService } from '@/lib/auth';
 import { Loader2, Zap } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -16,6 +16,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,29 +24,22 @@ export default function LoginForm() {
     setError('');
 
     try {
-      const authService = AuthService.getInstance();
-      const user = await authService.login(email, password);
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (user) {
-        // Redirect based on user role
-        switch (user.role) {
-          case 'admin':
-            router.push('/admin/dashboard');
-            break;
-          case 'buyer':
-            router.push('/buyer/marketplace');
-            break;
-          case 'vendor':
-            router.push('/vendor/dashboard');
-            break;
-          default:
-            router.push('/');
-        }
+      if (authError) {
+        setError(authError.message);
+      } else if (data.user) {
+        // For MVP, redirect to a default page. Role-based redirection will be handled in Task 3.3
+        router.push('/'); 
       } else {
-        setError('Invalid email or password');
+        setError('Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      console.error('Unexpected error during login:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

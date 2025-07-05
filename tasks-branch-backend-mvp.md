@@ -60,7 +60,7 @@ Este documento detalha as features e tarefas para a implementação do backend M
     - **Descrição:** Instalar os pacotes `@supabase/auth-helpers-nextjs` e `@supabase/supabase-js`. Configurar o "Auth Helper" do Supabase para Next.js (App Router) para gerenciar a sessão do usuário de forma integrada.
     - **Status:** ⬜️ Pendente
 
-- [ ] **Tarefa 3.2: Implementar o Formulário de Login**
+- [x] **Tarefa 3.2: Implementar o Formulário de Login**
     - **Descrição:** Modificar o componente `login-form.tsx` para usar o cliente do Supabase para realizar o login com email e senha.
     - **Status:** ⬜️ Pendente
 
