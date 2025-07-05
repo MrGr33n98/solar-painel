@@ -5,16 +5,22 @@ import ProductCard from '@/components/products/product-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, ShoppingCart } from 'lucide-react';
+import { Search, Filter, ShoppingCart, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function MarketplacePage() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const response = await fetch('/api/products');
         if (!response.ok) {
@@ -22,14 +28,20 @@ export default function MarketplacePage() {
         }
         const data = await response.json();
         setProducts(data);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        // Optionally, set an error state to display to the user
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch products');
+        toast({
+          title: 'Erro ao carregar produtos',
+          description: err.message || 'Não foi possível carregar os produtos. Tente novamente.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [toast]);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,8 +55,11 @@ export default function MarketplacePage() {
   const handleAddToCart = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (product) {
-      setCart(prev => [...prev, product]);
-      // Here you would typically show a toast notification
+      setCart(prev => [...prev]); // Simplified for now, actual cart logic would be here
+      toast({
+        title: 'Item Adicionado',
+        description: `${product.name} foi adicionado ao carrinho.`,
+      });
     }
   };
 
@@ -100,13 +115,26 @@ export default function MarketplacePage() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onAddToCart={handleAddToCart}
-          />
-        ))}
+        {loading ? (
+          <div className="col-span-full flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <p className="ml-2 text-gray-600">Carregando produtos...</p>
+          </div>
+        ) : error ? (
+          <div className="col-span-full text-center text-red-500">Erro ao carregar produtos: {error}</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="col-span-full text-center text-gray-600">
+            Nenhum produto encontrado. Tente ajustar sua busca ou filtros.
+          </div>
+        ) : (
+          filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={handleAddToCart}
+            />
+          ))
+        )}
       </div>
 
       {/* Cart Summary */}

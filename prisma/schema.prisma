@@ -30,6 +30,11 @@ model Product {
   updatedAt   DateTime @updatedAt
   vendor      User     @relation(fields: [vendorId], references: [id])
   vendorId    String
+  images      String[] @default([])
+
+  @@index([vendorId])
+  @@index([name])
+  @@index([description])
 }
 
 enum Role {
