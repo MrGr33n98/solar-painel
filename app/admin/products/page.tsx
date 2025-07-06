@@ -14,8 +14,13 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
-    const dataService = DataService.getInstance();
-    setProducts(dataService.getProducts());
+    const fetchProducts = async () => {
+      const dataService = DataService.getInstance();
+      const data = await dataService.getProducts();
+      setProducts(data);
+    };
+
+    fetchProducts();
   }, []);
 
   const filteredProducts = products.filter(product => {
@@ -36,10 +41,11 @@ export default function ProductsPage() {
     }
   };
 
-  const handleStatusChange = (productId: string, newStatus: any) => {
+  const handleStatusChange = async (productId: string, newStatus: any) => {
     const dataService = DataService.getInstance();
-    dataService.updateProductStatus(productId, newStatus);
-    setProducts(dataService.getProducts());
+    await dataService.updateProductStatus(productId, newStatus);
+    const updated = await dataService.getProducts();
+    setProducts(updated);
   };
 
   return (

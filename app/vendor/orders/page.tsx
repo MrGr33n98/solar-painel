@@ -28,13 +28,18 @@ export default function VendorOrdersPage() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const authService = AuthService.getInstance();
-    const dataService = DataService.getInstance();
-    const currentUser = authService.getCurrentUser();
-    
-    if (currentUser) {
-      setOrders(dataService.getOrdersByVendor(currentUser.id));
-    }
+    const fetchOrders = async () => {
+      const authService = AuthService.getInstance();
+      const dataService = DataService.getInstance();
+      const currentUser = authService.getCurrentUser();
+
+      if (currentUser) {
+        const ord = await dataService.getOrdersByVendor(currentUser.id);
+        setOrders(ord);
+      }
+    };
+
+    fetchOrders();
   }, []);
 
   const filteredOrders = orders.filter(order => {
@@ -77,12 +82,12 @@ export default function VendorOrdersPage() {
     }
   };
 
-  const handleStatusChange = (orderId: string, newStatus: any) => {
+  const handleStatusChange = async (orderId: string, newStatus: any) => {
     const dataService = DataService.getInstance();
-    dataService.updateOrderStatus(orderId, newStatus);
-    
+    await dataService.updateOrderStatus(orderId, newStatus);
+
     // Update local state
-    setOrders(prev => prev.map(order => 
+    setOrders(prev => prev.map(order =>
       order.id === orderId ? { ...order, status: newStatus, updatedAt: new Date() } : order
     ));
   };

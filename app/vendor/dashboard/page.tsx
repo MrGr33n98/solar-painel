@@ -13,15 +13,23 @@ export default function VendorDashboard() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const authService = AuthService.getInstance();
-    const dataService = DataService.getInstance();
-    const currentUser = authService.getCurrentUser();
-    
-    if (currentUser) {
-      setUser(currentUser);
-      setProducts(dataService.getProductsByVendor(currentUser.id));
-      setOrders(dataService.getOrdersByVendor(currentUser.id));
-    }
+    const fetchData = async () => {
+      const authService = AuthService.getInstance();
+      const dataService = DataService.getInstance();
+      const currentUser = authService.getCurrentUser();
+
+      if (currentUser) {
+        setUser(currentUser);
+        const [prod, ord] = await Promise.all([
+          dataService.getProductsByVendor(currentUser.id),
+          dataService.getOrdersByVendor(currentUser.id),
+        ]);
+        setProducts(prod);
+        setOrders(ord);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);

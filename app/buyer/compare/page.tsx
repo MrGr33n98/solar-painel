@@ -23,17 +23,21 @@ export default function ProductComparePage() {
   const [availableProducts, setAvailableProducts] = useState([]);
 
   useEffect(() => {
-    const dataService = DataService.getInstance();
-    const allProducts = dataService.getProducts().filter(p => p.status === 'active');
-    setAvailableProducts(allProducts);
-    
-    // Load from localStorage if available
-    const saved = localStorage.getItem('compareList');
-    if (saved) {
-      const savedIds = JSON.parse(saved);
-      const savedProducts = allProducts.filter(p => savedIds.includes(p.id));
-      setCompareList(savedProducts);
-    }
+    const fetchProducts = async () => {
+      const dataService = DataService.getInstance();
+      const allProducts = (await dataService.getProducts()).filter(p => p.status === 'active');
+      setAvailableProducts(allProducts);
+
+      // Load from localStorage if available
+      const saved = localStorage.getItem('compareList');
+      if (saved) {
+        const savedIds = JSON.parse(saved);
+        const savedProducts = allProducts.filter(p => savedIds.includes(p.id));
+        setCompareList(savedProducts);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   useEffect(() => {

@@ -24,13 +24,18 @@ export default function BuyerOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   useEffect(() => {
-    const authService = AuthService.getInstance();
-    const dataService = DataService.getInstance();
-    const currentUser = authService.getCurrentUser();
-    
-    if (currentUser) {
-      setOrders(dataService.getOrdersByBuyer(currentUser.id));
-    }
+    const fetchOrders = async () => {
+      const authService = AuthService.getInstance();
+      const dataService = DataService.getInstance();
+      const currentUser = authService.getCurrentUser();
+
+      if (currentUser) {
+        const ord = await dataService.getOrdersByBuyer(currentUser.id);
+        setOrders(ord);
+      }
+    };
+
+    fetchOrders();
   }, []);
 
   const filteredOrders = orders.filter(order => {

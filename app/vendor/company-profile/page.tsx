@@ -65,24 +65,28 @@ export default function CompanyProfilePage() {
   ];
 
   useEffect(() => {
-    const authService = AuthService.getInstance();
-    const dataService = DataService.getInstance();
-    const currentUser = authService.getCurrentUser();
-    
-    if (currentUser) {
-      const existingCompany = dataService.getCompanyByVendorId(currentUser.id);
-      if (existingCompany) {
-        setCompany(existingCompany);
-      } else {
-        // Initialize with user data
-        setCompany(prev => ({
-          ...prev,
-          name: currentUser.company || '',
-          phone: currentUser.phone || '',
-          cnpj: currentUser.cnpj || ''
-        }));
+    const fetchCompany = async () => {
+      const authService = AuthService.getInstance();
+      const dataService = DataService.getInstance();
+      const currentUser = authService.getCurrentUser();
+
+      if (currentUser) {
+        const existingCompany = await dataService.getCompanyByVendorId(currentUser.id);
+        if (existingCompany) {
+          setCompany(existingCompany);
+        } else {
+          // Initialize with user data
+          setCompany(prev => ({
+            ...prev,
+            name: currentUser.company || '',
+            phone: currentUser.phone || '',
+            cnpj: currentUser.cnpj || ''
+          }));
+        }
       }
-    }
+    };
+
+    fetchCompany();
   }, []);
 
   const handleInputChange = (field: string, value: any) => {
@@ -151,7 +155,7 @@ export default function CompanyProfilePage() {
         serviceAreas: filteredServiceAreas
       };
 
-      dataService.updateCompany(currentUser.id, companyData);
+      await dataService.updateCompany(currentUser.id, companyData);
       alert('Perfil da empresa atualizado com sucesso!');
     } catch (error) {
       alert('Erro ao atualizar perfil. Tente novamente.');
