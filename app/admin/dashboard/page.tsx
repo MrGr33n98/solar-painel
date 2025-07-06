@@ -10,8 +10,13 @@ export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
-    const dataService = DataService.getInstance();
-    setAnalytics(dataService.getAnalytics());
+    const fetchAnalytics = async () => {
+      const dataService = DataService.getInstance();
+      const data = await dataService.getAnalytics();
+      setAnalytics(data);
+    };
+
+    fetchAnalytics();
   }, []);
 
   if (!analytics) {

@@ -14,8 +14,13 @@ export default function AdminOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   useEffect(() => {
-    const dataService = DataService.getInstance();
-    setOrders(dataService.getOrders());
+    const fetchOrders = async () => {
+      const dataService = DataService.getInstance();
+      const data = await dataService.getOrders();
+      setOrders(data);
+    };
+
+    fetchOrders();
   }, []);
 
   const filteredOrders = orders.filter(order => {
@@ -36,10 +41,11 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleStatusChange = (orderId: string, newStatus: any) => {
+  const handleStatusChange = async (orderId: string, newStatus: any) => {
     const dataService = DataService.getInstance();
-    dataService.updateOrderStatus(orderId, newStatus);
-    setOrders(dataService.getOrders());
+    await dataService.updateOrderStatus(orderId, newStatus);
+    const updated = await dataService.getOrders();
+    setOrders(updated);
   };
 
   const formatCurrency = (value: number) => {

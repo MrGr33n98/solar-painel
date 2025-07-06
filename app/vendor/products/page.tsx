@@ -15,14 +15,19 @@ export default function VendorProductsPage() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const authService = AuthService.getInstance();
-    const dataService = DataService.getInstance();
-    const currentUser = authService.getCurrentUser();
-    
-    if (currentUser) {
-      setUser(currentUser);
-      setProducts(dataService.getProductsByVendor(currentUser.id));
-    }
+    const fetchProducts = async () => {
+      const authService = AuthService.getInstance();
+      const dataService = DataService.getInstance();
+      const currentUser = authService.getCurrentUser();
+
+      if (currentUser) {
+        setUser(currentUser);
+        const data = await dataService.getProductsByVendor(currentUser.id);
+        setProducts(data);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   const filteredProducts = products.filter(product => 
