@@ -41,6 +41,14 @@ export interface Order {
   trackingCode?: string;
 }
 
+export interface CartItem {
+  id: string
+  userId: string
+  productId: string
+  quantity: number
+  createdAt: Date
+}
+
 export interface Analytics {
   totalUsers: number;
   totalVendors: number;
@@ -110,18 +118,21 @@ export class DataService {
   }
 
   async getOrders(): Promise<Order[]> {
-    const { data } = await this.supabase.from('orders').select('*')
-    return (data as Order[]) || []
+    const res = await fetch('/api/orders')
+    if (!res.ok) return []
+    return (await res.json()) as Order[]
   }
 
   async getOrdersByBuyer(buyerId: string): Promise<Order[]> {
-    const { data } = await this.supabase.from('orders').select('*').eq('buyerId', buyerId)
-    return (data as Order[]) || []
+    const res = await fetch(`/api/orders?buyerId=${buyerId}`)
+    if (!res.ok) return []
+    return (await res.json()) as Order[]
   }
 
   async getOrdersByVendor(vendorId: string): Promise<Order[]> {
-    const { data } = await this.supabase.from('orders').select('*').eq('vendorId', vendorId)
-    return (data as Order[]) || []
+    const res = await fetch(`/api/orders?vendorId=${vendorId}`)
+    if (!res.ok) return []
+    return (await res.json()) as Order[]
   }
 
   async getCompanyByVendorId(vendorId: string): Promise<Company | null> {
@@ -155,7 +166,49 @@ export class DataService {
   }
 
   async updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
-    await this.supabase.from('orders').update({ status, updatedAt: new Date().toISOString() }).eq('id', orderId)
+    await fetch(`/api/orders/${orderId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+  }
+
+  async getCart(): Promise<CartItem[]> {
+    const res = await fetch('/api/cart')
+    if (!res.ok) return []
+    return (await res.json()) as CartItem[]
+  }
+
+  async addToCart(productId: string, quantity: number): Promise<CartItem | null> {
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, quantity }),
+    })
+    if (!res.ok) return null
+    return (await res.json()) as CartItem
+  }
+
+  async updateCartItem(productId: string, quantity: number): Promise<void> {
+    await fetch('/api/cart', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, quantity }),
+    })
+  }
+
+  async removeCartItem(productId: string): Promise<void> {
+    await fetch(`/api/cart?productId=${productId}`, { method: 'DELETE' })
+  }
+
+  async checkout(order: { shippingAddress: string; paymentMethod: string }): Promise<Order | null> {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    })
+    if (!res.ok) return null
+    return (await res.json()) as Order
   }
 
   async updateCompany(vendorId: string, updates: Partial<Company>): Promise<Company | null> {
