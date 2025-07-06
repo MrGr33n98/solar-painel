@@ -37,6 +37,47 @@ model Product {
   @@index([description])
 }
 
+model CartItem {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id             String   @id @default(cuid())
+  buyer          User     @relation("BuyerOrders", fields: [buyerId], references: [id])
+  buyerId        String
+  vendor         User     @relation("VendorOrders", fields: [vendorId], references: [id])
+  vendorId       String
+  products       Json
+  total          Float
+  status         OrderStatus @default(PENDING)
+  shippingAddress String
+  paymentMethod   String
+  trackingCode    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([buyerId])
+  @@index([vendorId])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 enum Role {
   BUYER
   VENDOR

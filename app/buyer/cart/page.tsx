@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { DataService } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,24 +19,21 @@ import {
 } from 'lucide-react';
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: '1',
-      name: 'Painel Solar Monocristalino 450W',
-      price: 899.99,
-      quantity: 10,
-      image: 'https://images.pexels.com/photos/9875416/pexels-photo-9875416.jpeg',
-      vendorName: 'SolarPro Soluções'
-    },
-    {
-      id: '2',
-      name: 'Inversor String 5kW Trifásico',
-      price: 3299.99,
-      quantity: 1,
-      image: 'https://images.pexels.com/photos/9875398/pexels-photo-9875398.jpeg',
-      vendorName: 'SolarPro Soluções'
-    }
-  ]);
+  const [cartItems, setCartItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const ds = DataService.getInstance();
+    ds.getCart().then(items => {
+      setCartItems(items.map(i => ({
+        id: i.productId,
+        name: i.product.name,
+        price: i.product.price,
+        quantity: i.quantity,
+        image: i.product.images?.[0] || '',
+        vendorName: i.product.vendorId
+      })))
+    })
+  }, []);
 
   const [shippingInfo, setShippingInfo] = useState({
     cep: '',
@@ -56,19 +54,27 @@ export default function CartPage() {
   };
 
   const updateQuantity = (id: string, newQuantity: number) => {
+    const ds = DataService.getInstance();
     if (newQuantity === 0) {
-      removeItem(id);
+      ds.removeCartItem(id).then(() =>
+        setCartItems(items => items.filter(item => item.id !== id))
+      )
       return;
     }
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
+    ds.updateCartItem(id, newQuantity).then(() =>
+      setCartItems(items =>
+        items.map(item =>
+          item.id === id ? { ...item, quantity: newQuantity } : item
+        )
       )
-    );
+    )
   };
 
   const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
+    const ds = DataService.getInstance();
+    ds.removeCartItem(id).then(() =>
+      setCartItems(items => items.filter(item => item.id !== id))
+    );
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -77,8 +83,16 @@ export default function CartPage() {
   const total = subtotal + shipping - discount;
 
   const handleCheckout = () => {
-    // Process checkout
-    alert('Pedido realizado com sucesso! Você receberá um email de confirmação.');
+    const ds = DataService.getInstance();
+    ds.checkout({
+      shippingAddress: `${shippingInfo.address}, ${shippingInfo.city} - ${shippingInfo.state}`,
+      paymentMethod,
+    }).then(order => {
+      if (order) {
+        setCartItems([]);
+        alert('Pedido realizado com sucesso!');
+      }
+    });
   };
 
   const calculateShipping = () => {
