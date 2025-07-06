@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { createClient } from '@/lib/supabase/server';
+import { prisma } from '@/lib/prisma';
 import { ProductSchema } from '@/lib/schemas/product'; // Import ProductSchema
 import { ZodError } from 'zod';
 
-const prisma = new PrismaClient();
 
 export async function GET(request: Request) {
   try {

@@ -1,10 +1,9 @@
 import { createMiddlewareClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 import type { NextRequest } from 'next/server'
 
-const prisma = new PrismaClient()
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
