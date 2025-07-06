@@ -27,5 +27,5 @@ jobs:
       - name: Run Type Check
         run: npm run type-check
 
-      - name: Run Tests (coming soon)
-        run: echo "TODO: Add tests"
+      - name: Run Tests
+        run: npm test
