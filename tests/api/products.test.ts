@@ -15,8 +15,8 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: () => supabaseMock,
 }));
 
-vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn(() => mockPrisma),
+vi.mock('@/lib/prisma', () => ({
+  prisma: mockPrisma,
 }));
 
 const loadRoute = async () => {
